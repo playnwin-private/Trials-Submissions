@@ -145,6 +145,7 @@ function startMindwashSceneLucas(choice = "menu")
 		if (pc.hasKeyItem("VR Program: Advanced Sexdoll")) addButton(button++, "KQ:A. Sexdoll", () => window.kqMinibossEncounter(true), "Kiro Quest: Advanced Sexdoll Encounter", "Experience battling with (and indulging in) everything Doctor Po’s advanced sexbot has to offer!");
 		if (pc.hasKeyItem("VR Program: Taursuit")) addButton(button++, "KQ:TaurSuit", () => window.taursuitsBonusFunz(true), "Kiro Quest: Taursuit Encounter", "Experience encountering the tricky taursuit once more!");
 		if (pc.hasKeyItem("VR Program: Doctor Illustria Po")) addButton(button++, "KQ:Dr Po", window.poVRIntro, "Kiro Quest: Doctor Po Encounter", "Experience battling with Doctor Illustria Po once more!");
+		if (pc.hasKeyItem("VR Program: Advanced Sexdoll")) addButton(button++, "Shock Hopper", () => window.shockHopperEncounter(true), "Shock Hopper & L.D.C", "Reexperience a boss fight from Zheng Shi.");
 		if (window.DHAAL && pc.hasKeyItem("VR Program: Dhaal Cyberdoll End")) addButton(button++, "Dhaal End", () => window.dollifyMeMommies(true), "Dhaal Cyberdoll End", "An experience in captive body modification and brainwashing...");
 		return;
 	}
@@ -390,6 +391,7 @@ function useShipMindwashMeee()
 			if (pc.hasKeyItem("VR Program: Advanced Sexdoll")) addButton(button++, "KQ:A. Sexdoll", () => window.kqMinibossEncounter(true), "Kiro Quest: Advanced Sexdoll Encounter", "Experience battling with (and indulging in) everything Doctor Po’s advanced sexbot has to offer!");
 			if (pc.hasKeyItem("VR Program: Taursuit")) addButton(button++, "KQ:TaurSuit", () => window.taursuitsBonusFunz(true), "Kiro Quest: Taursuit Encounter", "Experience encountering the tricky taursuit once more!");
 			if (pc.hasKeyItem("VR Program: Doctor Illustria Po")) addButton(button++, "KQ:Dr Po", window.poVRIntro, "Kiro Quest: Doctor Po Encounter", "Experience battling with Doctor Illustria Po once more!");
+			if (pc.hasKeyItem("VR Program: Advanced Sexdoll")) addButton(button++, "Shock Hopper", () => window.shockHopperEncounter(true), "Shock Hopper & L.D.C", "Reexperience a boss fight from Zheng Shi.");
 			if (pc.hasKeyItem("VR Program: Dhaal Cyberdoll End")) addButton(button++, "Dhaal End", () => window.dollifyMeMommies(true), "Dhaal Cyberdoll End", "An experience in captive body modification and brainwashing...");
 			return;
 		}

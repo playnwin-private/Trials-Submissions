@@ -80,9 +80,9 @@ function showLDCAndShockHopper(hopperNude = false, hopperGun = false)
 
 //Boss Fight: The Shock Hopper
 //Play when entering the Captain’s quarters on the Sidewinder. Should not be able to access the Bridge or Hold before then; they’re locked behind the captain’s personal authorization codes.
-function shockHopperEncounter()
+function shockHopperEncounter(VR = false)
 {
-	if (flags["SHOCK_HOPPER_DEFEATED"] === undefined)
+	if (flags["SHOCK_HOPPER_DEFEATED"] === undefined || VR)
 	{
 		clearOutput();
 		showLDCAndShockHopper(false, true);
@@ -119,6 +119,12 @@ function shockHopperEncounter()
 		output("\n\nYou jump backwards as her lightning gun discharges, sending a solid beam of crackling electricity out that hits the metal deck and arcs across the floor. Every hair you have stands on end as a powerful charge surges through you. Ow ow ow!");
 		processTime(3);
 		let tEnemy = new ShockHopper();
+		if(VR){
+			tEnemy.createStatusEffect("VR");
+			tEnemy.inventory.storage = [];
+			tEnemy.credits = 0;
+			tEnemy.XP = () => {return 0};
+		}
 		CombatManager.newGroundCombat();
 		CombatManager.setHostileActors(tEnemy);
 		CombatManager.setFriendlyActors(pc);
@@ -196,10 +202,12 @@ function loseToShockHopper()
 	if (pc.legCount !== 2 && !pc.isGoo())
 	{
 		output("\n\n<i>“Toss me that FT syringe!”</i> the Hopper bellows, and seconds later she expertly catches a small case hucked through the air. You can’t react in time before she jabs you with its contents: a medipen. The slow, wet anguish in your body and the massive shift in balance and weight indicate that she just stuck you with some sort of transformative. She tosses the container and the injector away. When your senses return, and when she lets you look, <b>you find that your lower half has morphed into two plantigrade legs.</b>");
-		pc.legCount = 2;
-		pc.genitalSpot = 0;
-		pc.legType = GLOBAL.TYPE_HUMAN;
-		pc.legFlags = [GLOBAL.FLAG_PLANTIGRADE];
+		if(!VR){
+			pc.legCount = 2;
+			pc.genitalSpot = 0;
+			pc.legType = GLOBAL.TYPE_HUMAN;
+			pc.legFlags = [GLOBAL.FLAG_PLANTIGRADE];
+		}
 	}
 	// merge
 	output("\n\nYour blue-furred captor grinds her crotch into you, rubbing those massive" + (bustedCount === 0 ? ", latex-wrapped" : "") + " spheres over your neck and jaw with aggressive rolls of her leaper’s hips. The roiling gurgle of seed inside is almost as fascinating her intoxicating aroma of cloudy musk forcing its way through your olfactory gates. Her thick " + (bustedCount > 0 ? "and lusty " : "") + "breath washes over your [pc.face], carrying with it all her possessive thoughts. ");
@@ -504,10 +512,14 @@ function moreHopperBadEndStuff()
 	processTime(60);
 	if (pc.hasVagina())
 	{
-		flags["LDC_SHOCKHOPPER_CUMIN"] = 1;
-		pc.loadInCunt(enemy, 0);
+		if(!VR){
+			flags["LDC_SHOCKHOPPER_CUMIN"] = 1;
+			pc.loadInCunt(enemy, 0);
+		}
 	}
-	else pc.loadInAss(enemy);
+	else if(!VR){
+		pc.loadInAss(enemy);
+	}
 	pc.orgasm();
 	clearMenu();
 	addButton(0, "Next", hopperLossBadEndCombinedNewLifeShit);
@@ -521,7 +533,9 @@ function hopperLossBadEndCombinedNewLifeShit()
 	author("William");
 	showShockHopperAndLDC(true);
 	output(blockHeader("Defeat"));
-	processTime(60 * 24 * 14);
+	if(!VR){
+		processTime(60 * 24 * 14);
+	}
 	output("<i>“Yeah, it’s taken care of.”</i>");
 	output("\n\n<i>“It better be. If your bitches weren’t so busy fucking everything that moves maybe they’d have had the brain cells to rub together to stop that intruder before they reached the foundry!”</i>");
 	output("\n\n<i>“Right, because <b>we</b> were supposed to be on the lookout for someone sneaking up through the mines, ");
@@ -566,7 +580,12 @@ function hopperLossBadEndCombinedNewLifeShit()
 	output("\n\nYou love her.");
 	output("\n\nYou’ll always be there for her, too.");
 	pc.orgasm();
-	badEnd();
+	if(!VR){
+		badEnd();
+	}
+	else{
+		CombatManager.genericLoss();
+	}
 }
 
 function loseToJumpBossPart2Nonbust()
@@ -655,8 +674,10 @@ function victoryOverShockyHoppy()
 	showShockHopperAndLDC();
 	output(blockHeader("Victory!"));
 	author("Savin");
-	flags["SHOCK_HOPPER_DEFEATED"] = 1;
-
+	if(!VR){
+		flags["SHOCK_HOPPER_DEFEATED"] = 1;
+	}
+	
 	output("The latex-clad lieutenant stumbles back against the edge of the heart-shaped bed, panting and gasping from your confrontation. " + (enemy.lust() >= enemy.lustMax() ? "Her chest is heaving under the tattered front of her suit, ripping away the shredded rubber to reveal two full mounds of blue-furred breasts and stiff black nipples." : "She’s gasping for breath, teeth grit against the pain of defeat."));
 	output("\n\n<i>“I can’t... take any more,”</i> the Hopper groans. <i>“H-hey, L.D.C., you gonna help or?”</i>");
 	output("\n\nThe bunny boy reclining on the bed laughs nervously, looking between you and his lieutenant. <i>“Uh, y-yeah, maybe we could just... y’know... talk this one out, huh?”</i>");
@@ -729,12 +750,16 @@ function takeTheAccessCodesAndProbes()
 	showShockHopperAndLDC();
 	output(blockHeader("Victory!"));
 	author("Savin");
-	flags["ZHENG_SHI_CODE"] = String(rand(10)) + String(rand(10)) + String(rand(10)) + String(rand(10));
+	if (!enemy.hasStatusEffect("VR")){
+		flags["ZHENG_SHI_CODE"] = String(rand(10)) + String(rand(10)) + String(rand(10)) + String(rand(10));
+	}
 	output("You nod, and the L.D.C. breathes a sigh of relief. <i>“Okay, okay, great. No need to get all up in arms here, look; the code’s " + flags["ZHENG_SHI_CODE"] + ". Got it? Okay, well, me and the girls will just uh, get out of your way then...”</i>");
 	output("\n\nAssuming he’s telling the truth, then yeah, you got what you need. But then again, he’s talking about leaving <i>with</i> all those collared slave-girls. This might be your one and only chance to save them.");
 
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
-
+	if (!enemy.hasStatusEffect("VR")){
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	}
+	
 	processTime(2);
 	clearMenu();
 	addButton(0, "Save Them", saveThemSluts, "Save Them", "Oh no, you’re not letting him walk off with all these innocent women.");
@@ -750,10 +775,14 @@ function leaveThemSluts()
 	output(blockHeader("Victory!"));
 	author("Savin");
 	output("You nod again and turn to leave. A few moments after you’ve slipped out of the captain’s quarters, you hear a number of wet footfalls padding out in the corridor, quickly receding away. Well, none of your concern; you turn your attention to the cargo hold and your inheritance.");
-	pc.addHard(5);
+	if (!enemy.hasStatusEffect("VR")){
+		pc.addHard(5);
+	}
 	output("\n\n");
 	//track ending resolution
-	flags["JUMPER_SLAVES_FREED"] = -1;
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_SLAVES_FREED"] = -1;
+	}
 	CombatManager.genericVictory();
 }
 
@@ -771,11 +800,15 @@ function saveThemSluts()
 	output("\n\nWhen the slowest of the slaves has left, you back out of the bedroom and close the door behind you. Time to go find your inheritance.");
 	processTime(5);
 	output("\n\n");
-
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	
+	if (!enemy.hasStatusEffect("VR")){
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	}
 
 	//track resolution
-	flags["JUMPER_SLAVES_FREED"] = 1;
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_SLAVES_FREED"] = 1;
+	}
 	CombatManager.genericVictory();
 }
 
@@ -801,7 +834,7 @@ function fuckTheHopper(x)
 	output("\n\nSo you just focus on your most recent conquest, spreading her furry legs in your hands and grinding the crown of your cock against the little hooded bulb at the top of her cunt. One good is enough to make her squeal, legs struggling against your hands... and her dick almost jumps straight up before one of the slave girls catches it and pins it back down just in time for a trickle of white to leak out and mat itself in her belly fur.");
 	output("\n\nOh, that’s sensitive! You tease her about the L.D.C. never having found it before, the way she leaks all over herself every time you rub the tip against her clitty... and that only seems to make her harder and wetter. The black bunny huffs, but the Hopper’s mouth working on his balls quickly hushes him. You can only see the working of her tongue through ripples in the L.D.C.’s cum-swollen balls, but she’s soon cut off by her boss thrusting the length of his dick down her throat.");
 	output("\n\nNow that’s an example worth following. As soon as you see what the pirate boss is up to, you follow suit, letting the bottom of one thrust against the Hopper’s clit carry you straight back in between her pussylips. You’re rewarded by a shriek, muffled by her mouthful of dick, and then you’re sinking into the silken chasm of her quim.");
-	if (x >= 0) pc.cockChange();
+	if (x >= 0 && !enemy.hasStatusEffect("VR")) pc.cockChange();
 	processTime(20);
 	pc.changeLust(50);
 	clearMenu();
@@ -852,13 +885,17 @@ function fuckTheHopper2(x)
 	output("\n\nYou’ve got a probe to go find.");
 	processTime(30);
 	pc.orgasm();
-	enemy.loadInCunt(pc, x);
+	if (!enemy.hasStatusEffect("VR")){
+		enemy.loadInCunt(pc, x);
+	}
 	output("\n\n");
 	//track resolution, slaves freed.
-	flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
-	flags["SHOCK_HOPPER_FUCKED"] = 1;
-	flags["JUMPER_SLAVES_FREED"] = 1;
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
+		flags["SHOCK_HOPPER_FUCKED"] = 1;
+		flags["JUMPER_SLAVES_FREED"] = 1;
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	}
 	CombatManager.genericVictory();
 }
 
@@ -878,8 +915,10 @@ function rideHopperSlut(x)
 	output("\n\n<i>“H-hey, that’s my job,”</i> the L.D.C. huffs, watching helplessly as you take his lieutenant in your arms. You grab her cock in one hand, stroking it slowly from sheath to medial, while a hand plays its way across her breasts. You push her, slowly at first, then forcefully backwards. She goes tumbling onto the bed hard enough to knock the wind out of her, and the second she lands, the once-submissive harem sluts dive on her with a lustful furor. Hands grab at her tits and ears, pulling and tweaking until the Hopper’s squealing and her cock is throbbing hard.");
 	output("\n\nThe pillar of lapine horse-meat wobbles under its own weight, swaying unsteadily as you mount the bed after her. You shuck your gear and sit your [pc.butt] directly on the Hopper’s belly, rubbing your cheeks back against her stiffening tool until you’re satisfied that it’s as stiff as it’s going to get. For your part, you’re " + (pc.hasVagina() ? "as wet as can be, soaking with anticipation. It’s not every day you get to sample equine majesty of this sheer size while its owner is a submissive mess of overstimulation between your thighs." : "burning with desire. Your [pc.asshole] opens with a force of will, parting its perpetual clenched as it presses against the haft of the Hopper’s cock.") + " Slowly, savoring every moment of it, you shift your weight up so that the blunt, flared breeching end of her oversized dick is pressing into the waiting " + (x >= 0 ? "lips" : "ring") + " of your [pc.vagOrAss " + x + "].");
 	output("\n\nYou lock eyes with the L.D.C. and give him a wink as you spear yourself on his lieutenant’s member, gasping with pleasure as your [pc.vagOrAss " + x + "] is stretched open by the Hopper’s huge member.");
-	if (x < 0) pc.buttChange(enemy.cockVolume(0));
-	else pc.cuntChange(x, enemy.cockVolume(0));
+	if (x < 0 && if !enemy.hasStatusEffect("VR")) pc.buttChange(enemy.cockVolume(0));
+	else if (!enemy.hasStatusEffect("VR")){
+		pc.cuntChange(x, enemy.cockVolume(0));
+	}
 	output("\n\n<i>“Ohh, fuck! You’re so ");
 	let loosie = pc.ass.looseness();
 	if (x >= 0) loosie = pc.vaginas[x].looseness();
@@ -942,18 +981,22 @@ function rideHopperSlut(x)
 		processTime(30);
 		//track outcome and slavegrill freeing
 		pc.orgasm();
-		if (x >= 0)
+		if (x >= 0 && !enemy.hasStatusEffect("VR"))
 		{
 			flags["LDC_SHOCKHOPPER_CUMIN"] = 2;
 			pc.loadInCunt(enemy, x);
 		}
-		else pc.loadInAss(enemy);
-
-		flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
-		flags["SHOCK_HOPPER_FUCKED"] = 1;
-		flags["LDC_FUCKED"] = 1;
-		flags["JUMPER_SLAVES_FREED"] = 1;
-		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+		else if (!enemy.hasStatusEffect("VR")){
+			pc.loadInAss(enemy);
+		}
+		
+		if (!enemy.hasStatusEffect("VR")){
+			flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
+			flags["SHOCK_HOPPER_FUCKED"] = 1;
+			flags["LDC_FUCKED"] = 1;
+			flags["JUMPER_SLAVES_FREED"] = 1;
+			Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+		}
 
 		output("\n\n");
 		CombatManager.genericVictory();
@@ -1019,8 +1062,10 @@ function domTheLDCsAss(x)
 	else if (pc.isMischievous()) output("<i>“Hard to believe the big man on this rock was actually a little man who, by the looks of it,”</i> you rub a hand over his plump butt, <i>“needs his little ass pounded.”</i>");
 	else output("<i>“Just like the rest of your crew,”</i> you grunt, running a heavy hand across his plump ass cheeks, gripping hard enough to make him squeak. <i>“A slut. But one that needs a good stretching himself to really... <b>fit</b> the role.”</i>");
 
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
-
+	if (!enemy.hasStatusEffect("VR")){
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	}
+	
 	processTime(10);
 	pc.changeLust(30);
 	clearMenu();
@@ -1071,7 +1116,7 @@ function domTheLDCsAss2(x)
 	output("weight of your " + (x < 0 ? "holographic " : "") + "cockflesh fall on his ass. It’s the last non-verbal suggestion he’s going to get. " + (!pc.isTaur() ? "You align" : "The girls align") + " your crown with his hole and you simultaneously put force to your [pc.hips], pressing the [pc.cockOrStraponHead " + x + "] to the horse-bunny’s tantalizing entrance.");
 	output("\n\nThe force, the intense pressure, and <i>the loudness</i> of his asshole popping nearly makes you cum.");
 
-	if (x >= 0) pc.cockChange();
+	if (x >= 0 && !enemy.hasStatusEffect("VR")) pc.cockChange();
 
 	output("\n\n<i>“Fu... Fuck!!”</i> the bunny boss squeaks, a strand of cum plastering his lips, another ultra-thick cord whirling past his upjerked chin and barely open eyes. Goo-webbed blankets are tugged and nude bodies slide. You burden his distending asshole with more of your raging " + (x < 0 ? "faux-cock" : "[pc.cockNoun " + x + "]") + ", pumping your [pc.cockOrStraponFull " + x + "] further into his wet cavern until it seems like his entire body tightens around it. The gyrations of your waist press the slick, hard tip into sensitive clusters that have him lurching forward involuntarily, changing the color of his puddled place on the sheets from chalky to milky.");
 	if ((x >= 0 && pc.cockTotal() > 2) || (x < 0 && pc.hasCocks())) output(" Your extra shafts slide over his wobbling rump, painting his curves with cock-juice that his fur soaks up like a sponge worth its price.");
@@ -1106,7 +1151,9 @@ function domTheLDCsAss2(x)
 		output("\n\n");
 		if (pc.hasTailCunt()) output("It’s not just your cunt tail getting in on the action, your arboreal appendage" + (pc.tailCount > 1 ? "s also want" : " also wants") + " to play.");
 		output(" You will your " + (pc.tailCount > 1 ? "one " : "") + "verdant cocktail to the hopper’s splayed crotch, a slave lifting those enormous nuts out of the way to reveal the head jumper’s clownishly agape pussy, stretched permanently by L.D.C.’s cunt-breaking rod. " + (pc.tailCount === 1 ? "It slips in easily enough, of course, and wastes no time rubbing its nerves against her well-fucked walls." : "One slips in, then another, and those tendrils waste no time pumping her gushy honeypot, grinding their most sensitive nerves against her long-conquered walls."));
-		enemy.loadInAss(pc);
+		if (!enemy.hasStatusEffect("VR")){
+			enemy.loadInAss(pc);
+		}
 	}
 	// Merge]
 	output("\n\nThe slaves concentrate their efforts on you as you savagely piston in and out of the pretentious pirate, skewering and stretching him with every ravishing thrust. They grope your [pc.ass], caress your [pc.hips]");
@@ -1184,12 +1231,14 @@ function domTheLDCsAss2(x)
 	output("\n\nYou stand and collect your gear, all the while thinking of what you should do now as the lawless echelon slowly rouse. One thing’s for sure: you’ve left that bunny-boy little more than a shuddering lump of " + (x >= 0 ? "[pc.cumNoun]-splattered " : "") + "coal.");
 	output("\n\n");
 	processTime(35);
-	if (pc.hasTailCunt()) pc.feedCuntSnake(enemy);
-	if (x >= 0) enemy.loadInAss(pc);
+	if (pc.hasTailCunt() && !enemy.hasStatusEffect("VR")) pc.feedCuntSnake(enemy);
+	if (x >= 0 && !enemy.hasStatusEffect("VR")) enemy.loadInAss(pc);
 	pc.orgasm();
 
-	flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
-	flags["LDC_FUCKED"] = 1;
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
+		flags["LDC_FUCKED"] = 1;
+	}
 	clearMenu();
 	addButton(0, "Next", () => postSexShockHopperVictoryEpiloggieDoggie(3));
 }
@@ -1416,7 +1465,9 @@ function getWorshippedByBuns(cockUse)
 		output("\n\nL.D.C. scoffs, <i>“Speak for yourself, babe.”</i>");
 		output("\n\nYou crane your body and stretch, thinking it’s time to move on and claim your inheritance. Hopefully you’ll get those mouths hopping to action again someday. They make a great team!");
 		processTime(35);
-		enemy.loadInMouth(pc);
+		if (!enemy.hasStatusEffect("VR")){
+			enemy.loadInMouth(pc);
+		}
 		pc.orgasm();
 	}
 	// PC chose vagina, not taur
@@ -1494,7 +1545,9 @@ function getWorshippedByBuns(cockUse)
 		output("\n\n<i>“Y-yeah... I guess so,”</i> his creamy second-in-command murmurs.");
 		output("\n\nWhen you’re able to stand, you smile widely, staring at the [pc.girlCumNoun]-glazed bunnies, glassy-eyed, panting, and almost totally drenched after their service of you. When you gather your things, you do so with renewed strength, and a perfectly clear mind as to the matter of your business here.");
 		processTime(35);
-		enemy.girlCumInMouth(pc);
+		if (!enemy.hasStatusEffect("VR")){
+			enemy.girlCumInMouth(pc);
+		}
 		pc.orgasm();
 	}
 		//[Next]
@@ -1581,8 +1634,8 @@ function getWorshippedByBuns(cockUse)
 		output("\n\n<i>“Maybe if you helped...”</i> the Hopper whispers almost acidically.");
 		output("\n\nAfter you gather your things, you look over the two and decide what to do next.");
 		processTime(35);
-		if (pc.biggestTitSize() >= 1 && pc.isLactating()) pc.milked();
-		if (pc.hasTailCunt()) pc.feedCuntSnake(enemy);
+		if (pc.biggestTitSize() >= 1 && pc.isLactating() && !enemy.hasStatusEffect("VR")) pc.milked();
+		if (pc.hasTailCunt() && !enemy.hasStatusEffect("VR")) pc.feedCuntSnake(enemy);
 		pc.orgasm();
 		output("\n\n");
 	}
@@ -1660,13 +1713,17 @@ function getWorshippedByBuns(cockUse)
 		output("\n\nThe Hopper, slack-mouthed and painted [pc.girlCumColor] whines when a slave jerks her softening dick, brought to an unfulfilling orgasm. She only manages a miserable scowl at her boss.");
 		output("\n\nWhen you gather your things, the two are finally a bit more lucid. As are you. Clear of mind, you’re ready to chart your next course.");
 		processTime(30);
-		enemy.girlCumInMouth(pc);
+		if (!enemy.hasStatusEffect("VR")){
+			enemy.girlCumInMouth(pc);
+		}
 		pc.orgasm();
 		output("\n\n");
 	}
-	flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
-	flags["SHOCK_HOPPER_FUCKED"] = 1;
-	flags["LDC_FUCKED"] = 1;
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
+		flags["SHOCK_HOPPER_FUCKED"] = 1;
+		flags["LDC_FUCKED"] = 1;
+	}
 	clearMenu();
 	addButton(0, "Next", () => postSexShockHopperVictoryEpiloggieDoggie(0));
 }
@@ -1815,7 +1872,7 @@ function laquineShockyThreesomes3(x)
 	output("\n\nYou let him know with one [pc.hand] on his cheek and the other lifting his cum-pouch. You hoist the hapless Jumpers up to give yourself room to work. <i>“What are you doi- FUCK!”</i>");
 	output("\n\nThere was only a second for him to panic when " + (y >= 0 ? "a" : "your") + " [pc.cock " + z + "] prodded at the entrance to his effluvium-moistened pucker, and you thrust in just the same as you did to his honey-bun: skewering him on your [pc.cockType " + z + "] lance in a gate-smashing thrust. The trappy boy screams in dismay, arms thrashing and hips bucking upwards. The cock-locked skank loses grip on her bottom’s taut tummy, slumping forward only to catch herself on his shoulders" + (y >= 0 ? " and swing you forward just to keep both dicks inside" : "") + ".");
 
-	if (z >= 0) pc.cockChange();
+	if (z >= 0 && !enemy.hasStatusEffect("VR")) pc.cockChange();
 
 	output("\n\nThose thick and obscenely swollen nuts of his clench and strain, and you can see a massive swell in what little cockflesh protrudes from her hole. His bloating cum-vein pries apart her interior when it swells with a creamy gout of laquine cum. What splashes her womb spills right back out on the next gut-crunch.");
 	output("\n\nOn your next thrust he does it again, and then again. You twang him like a fiddle even though he’s spasming around your [pc.cock " + z + "] so tightly you can feel pre backing up in your shaft. You’re double-teaming them so hard that you’re just fucking his black-pelt nutsack now, the thrust of [pc.cockNoun " + x + "] hitting all the <i>make this bitch-boy cum</i> buttons in sequence. A slave moves in to hold his those sloshing testes up, coaxing <i>even more</i> into the mistress-rabbit’s rounding gut.");
@@ -1860,10 +1917,12 @@ function laquineShockyThreesomes3(x)
 	output("\n\n");
 	processTime(30);
 	//track what happen
-	flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
-	flags["SHOCK_HOPPER_FUCKED"] = 1;
-	flags["LDC_FUCKED"] = 1;
-	if (z >= 0) enemy.loadInAss(pc);
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
+		flags["SHOCK_HOPPER_FUCKED"] = 1;
+		flags["LDC_FUCKED"] = 1;
+	}
+	if (z >= 0 && !enemy.hasStatusEffect("VR")) enemy.loadInAss(pc);
 	pc.orgasm();
 	clearMenu();
 	addButton(0, "Next", () => postSexShockHopperVictoryEpiloggieDoggie(1));
@@ -1937,7 +1996,9 @@ function drainBunnies(x = 0)
 		output("\n\n<i>“G-good luck, you can’t take that! Only s-she can...”</i> he says, desperately trying to maintain a commanding tone.");
 		output("\n\n<i>“Maybe if you keep talkin’ tough I’ll keep you for myself, I’m not seeing the love ‘tween you two!”</i> you simper, huffing as you hold tight to the bunny’s boner like a stripper her pole.");
 		processTime(30);
-		enemy.girlCumInMouth(pc);
+		if (!enemy.hasStatusEffect("VR")){
+			enemy.girlCumInMouth(pc);
+		}
 		pc.orgasm();
 	}
 	// Bimbo
@@ -2002,9 +2063,11 @@ function drainBunnies(x = 0)
 		output("\n\n<i>“No, silly!”</i> you wag a finger, pouncing on his body, sultry intent shining in your [pc.eyes]. He looks up to you nervously, unable to settle on any expression besides confused. <i>“That’s my way of getting started!”</i>");
 		processTime(30);
 		//Big boi loads.
-		pc.loadInMouth(enemy);
-		pc.loadInMouth(enemy);
-		pc.loadInMouth(enemy);
+		if (!enemy.hasStatusEffect("VR")){
+			pc.loadInMouth(enemy);
+			pc.loadInMouth(enemy);
+			pc.loadInMouth(enemy);
+		}
 		pc.orgasm();
 	}
 	clearMenu()
@@ -2049,7 +2112,9 @@ function drainBunnies2(x)
 	output("\n\n<i>“" + (pc.isAmazon(false) ? "I’ll show you lesser when I’m...”</i> The Hopper thrusts indignantly into your [pc.asshole]. <i>“...When I’m turning you into a cum bubble!" : "You want him, you get me too...”</i> She growls, thrusting indignantly into your [pc.asshole]. <i>“...I’m gonna fill you until you’re just a cum bubble, slut!") + "”</i> " + (pc.isAmazon(false) ? "You can’t deny her energy is already firing you up!" : "Fuck yes! Every drop in her balls too? <i>Aren’t you just the luckiest slut to get two laquine’s hosing you down?</i>"));
 	output("\n\nThe Hopper’s legs catapult her forward and quickly settle into a series of gyrations that’d put the precision of machinery to shame. The azure bunny reams you with such speed and force that her tremendously gravid and fuzzy nutsack doesn’t flop back and forth as you would expect. That lust-fattened cum-bag merely hovers and jiggles an inch or two from the [pc.skinFurScales] of your [pc.ass] - it’s a closeness that chucks hormones and adrenaline through your body. The sheer testicular presence she maintains back there is absolutely arousing - it’s an all new force of nature that’s fucking your fight-or-flight reaction.");
 	enemy.cocks[0].cLengthRaw -= 10;
-	pc.buttChange(enemy.cockVolume(0));
+	if (!enemy.hasStatusEffect("VR")){
+		pc.buttChange(enemy.cockVolume(0));
+	}
 	output("\n\nYour thoughts immediately drift to her plastering you, L.D.C., and the entire bed in a wave of laquine sperminess that’d put her entire race to shame. But mostly, you think about what it’d be like trying to take possession of those unstable spunk-reactors on your own time...");
 	output("\n\n<i>“Think you can just come in here... Walk all over us...? Think again!”</i> Not to be outdone, you ignore the firm paws on your waist and continue to bury the inky boy into his mattress, gritting your teeth the whole way. One deep and extremely fast thrust after the other, the pent-up shock-rabbit is making you moan louder and louder. Slap, slap, thump, fwump, she channels all of her ire and desire into your butt, practically fucking you and her little lover simultaneously.");
 	// PC multi vagina (2 pussies)
@@ -2059,9 +2124,11 @@ function drainBunnies2(x)
 		y = 1;
 		if (y === x) y = 0;
 		output("\n\nSeeing the extra hole" + (pc.vaginaTotal() > 2 ? "s" : "") + " unused next to LDC’s insertion, you squeak when the lapine humper withdraws from your chute and slams herself into your unclaimed [pc.pussyNoun " + y + "], the abruptness and curling pressure forcing her to shoot right into your ancillary womb. <i>“You wanted to fuck us that bad? I’ve got plenty to spare, bitch!”</i> she growls, her dick inflating to the point that it seals itself in your hole while it dumps a gallon or two of lapine nut-butter inside. By the time that hole milks her thoroughly, she’s already pulled out, baring her throbbing bitch-inflater to the air.");
-		pc.cuntChange(y, enemy.cockVolume(0));
-		flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
-		pc.loadInCunt(enemy, y);
+		if (!enemy.hasStatusEffect("VR")){
+			pc.cuntChange(y, enemy.cockVolume(0));
+			flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
+			pc.loadInCunt(enemy, y);
+		}
 		// PC multi vagina (3 pussies, add-on)
 		if (pc.vaginaTotal() > 2)
 		{
@@ -2071,9 +2138,11 @@ function drainBunnies2(x)
 				z++;
 			}
 			output("\n\n...And she’s stuffing your third [pc.pussyNoun " + z + "] with that spunk-stained rod, writhing and howling, her muscular breeder thighs <i>whapping</i> into you with hostile and totally reckless abandon. Your [pc.tongue] falls from your mouth as you let the domme-rabbit take control, impregnating your third womb with another ecstatic and spite-rushed orgasm. <i>“I don’t use sterilex,”</i> she grunts into your neck" + (pc.hasHair() ? ", tugging on your [pc.hair]" : "") + ". <i>“When you have my kids, I’ll come and find them, make them part of my crew...! Maybe next time I’ll make you my personal breeder...!”</i> Another brawny load shatters your coherency.");
-			pc.cuntChange(z, enemy.cockVolume(0));
-			flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
-			pc.loadInCunt(enemy, z);
+			if (!enemy.hasStatusEffect("VR")){
+				pc.cuntChange(z, enemy.cockVolume(0));
+				flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
+				pc.loadInCunt(enemy, z);
+			}
 		}
 		output("\n\nSatisfied, the zap-rabbit reclaims your colon. ");
 	}
@@ -2102,16 +2171,18 @@ function drainBunnies2(x)
 	output("\n\n<i>“W-wait.. No! You c-can’t... Oh ff...”</i> LDC whines, seeing you move up, and down again. There’s nothing that could have prepared him for you.");
 	processTime(35);
 	pc.orgasm();
-	for (x = 0; x < pc.vaginaTotal(); x++)
-	{
-		flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
-		pc.loadInCunt(enemy, x);
-		flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
-		pc.loadInCunt(enemy, x);
+	if (!enemy.hasStatusEffect("VR")){
+		for (x = 0; x < pc.vaginaTotal(); x++)
+		{
+			flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
+			pc.loadInCunt(enemy, x);
+			flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
+			pc.loadInCunt(enemy, x);
+		}
+		pc.loadInAss(enemy);
+		pc.loadInAss(enemy);
+		pc.applyCumSoaked();
 	}
-	pc.loadInAss(enemy);
-	pc.loadInAss(enemy);
-	pc.applyCumSoaked();
 	pc.orgasm();
 	clearMenu();
 	addButton(0, "Next", drainBunnies3);
@@ -2130,22 +2201,24 @@ function drainBunnies3()
 	processTime(60);
 	//More cummies.
 	pc.orgasm();
-	for (let x = 0; x < pc.vaginaTotal(); x++)
-	{
-		flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
-		pc.loadInCunt(enemy, x);
-		flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
-		pc.loadInCunt(enemy, x);
+	if (!enemy.hasStatusEffect("VR")){
+		for (let x = 0; x < pc.vaginaTotal(); x++)
+		{
+			flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
+			pc.loadInCunt(enemy, x);
+			flags["LDC_SHOCKHOPPER_CUMIN"] = 3;
+			pc.loadInCunt(enemy, x);
+		}
+		pc.loadInAss(enemy);
+		pc.loadInAss(enemy);
+		pc.applyCumSoaked();
+		flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
+		flags["JUMPER_LEADERSHIP_LIKED_WINFUCK"] = 1;
+		flags["SHOCK_HOPPER_FUCKED"] = 1;
+		flags["LDC_FUCKED"] = 1;
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
 	}
-	pc.loadInAss(enemy);
-	pc.loadInAss(enemy);
-	pc.applyCumSoaked();
 	pc.orgasm();
-	flags["JUMPER_LEADERSHIP_WINFUCKED"] = 1;
-	flags["JUMPER_LEADERSHIP_LIKED_WINFUCK"] = 1;
-	flags["SHOCK_HOPPER_FUCKED"] = 1;
-	flags["LDC_FUCKED"] = 1;
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
 	clearMenu();
 	addButton(0, "Next", () => postSexShockHopperVictoryEpiloggieDoggie(2));
 }
@@ -2183,8 +2256,10 @@ function freeDemHaremSlootipies()
 	output("<i>Tap.</i> The metal rings fit firm to the harem snap off and fall to the sheets or the deck. In confusion they rub their necks, almost in disbelief that they now have the freedom once stolen from them. Scanning their eyes reveals a mix of uncontained joy and a curious bit of reluctance. A deluge of gratitude gives you some comfort as they hurry out of the room, however, some look back to the rising laquine leaders as if they want to stay!");
 	output("\n\n<i>“Ah geez, you know most of them weren’t even ours! As if we needed </i>that<i> on our asses too!”</i> L.D.C. grouses. He shrinks back when you cut a knife-like glare his way. <i>“Whatever, we’ll get out of your way then...”</i>");
 	output("\n\nThe inky bunny hefts his package and waddles out after the Hopper, neither of them looking back to you. Their toe-steps fade into the background, leaving you alone.\n\n");
-	flags["JUMPER_SLAVES_FREED"] = 1;
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_SLAVES_FREED"] = 1;
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	}
 	processTime(5);
 	CombatManager.genericVictory();
 }
@@ -2199,8 +2274,10 @@ function dontFreeThemSlootySloots()
 	output("You shake your head, simply ordering them all to leave. The black and blue buns finally stand, collecting what little possessions they have from the bed. <i>“Get going...”</i> the Hopper mutters, ushering the slaves out one-by-one with the tatters of her outfit in hand. She scoops up their release switch, looking warily at you as she and L.D.C., hefting his package, waddles out with them.");
 	output("\n\nTheir toe-steps fade into the background, leaving you alone and ready to move on.");
 	output("\n\n");
-	flags["JUMPER_SLAVES_FREED"] = -1;
-	Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	if (!enemy.hasStatusEffect("VR")){
+		flags["JUMPER_SLAVES_FREED"] = -1;
+		Achievements.triggerAchievement("ACH_ZHENGSHIPROBE");
+	}
 	processTime(5);
 	CombatManager.genericVictory();
 }
